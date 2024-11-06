@@ -2,6 +2,7 @@ from openai import OpenAI
 from flask import Flask, render_template, request
 import os
 import json
+import re
 
 app = Flask(__name__)
 
@@ -32,38 +33,44 @@ def get_summary(case_text, custom_prompt, case_number):
         except json.JSONDecodeError:
             # Log an error if JSON decoding fails
             print(f"Failed to decode JSON for case {case_number}: {json_output}")
-            return {"error": f"Invalid JSON response from API for case {case_number}"}
+            return {"case_number": case_number, "error": f"Invalid JSON response from API for case {case_number}"}
     
     except Exception as e:
         # Log other exceptions and return an error message
         print(f"Error processing case {case_number}: {str(e)}")
-        return {"error": f"Error processing case {case_number}: {str(e)}"}
+        return {"case_number": case_number, "error": f"Error processing case {case_number}: {str(e)}"}
 
 # Function to process multiple cases and structure the output as JSON with scores
 def process_cases(bulk_text, custom_prompt):
+    # Find all original case numbers using a regex
+    case_numbers = re.findall(r"Case (\d+)", bulk_text)
+    case_numbers = [int(num) for num in case_numbers]  # Convert to integers
     cases = bulk_text.split("Case")  # Split input text into individual cases
     structured_output = []  # List to hold JSON outputs for each case
 
-    for index, case in enumerate(cases[1:], start=1):  # Skip the empty first element
+    for index, case in enumerate(cases[1:]):  # Start from cases[1] to skip any empty text before the first "Case"
         if "Attending Report" in case and "Resident Report" in case:
+            # Use the corresponding original case number
+            case_number = case_numbers[index] if index < len(case_numbers) else index + 1
+            
             # Extract attending and resident reports from each case
             attending_report = case.split("Attending Report:")[1].split("Resident Report:")[0].strip()
             resident_report = case.split("Resident Report:")[1].strip()
             case_text = f"Resident Report: {resident_report}\nAttending Report: {attending_report}"
             
             # Get structured JSON summary for each case
-            parsed_json = get_summary(case_text, custom_prompt, case_number=index)
+            parsed_json = get_summary(case_text, custom_prompt, case_number=case_number)
             
             # Check if there's an error in the parsed JSON
             if "error" in parsed_json:
-                structured_output.append({"case_number": index, "error": parsed_json["error"]})
+                structured_output.append(parsed_json)
             else:
                 # Calculate the score if there is no error
                 score = len(parsed_json.get('major_findings', [])) * 3 + len(parsed_json.get('minor_findings', [])) * 1
                 parsed_json['score'] = score  # Append score to the JSON
                 structured_output.append(parsed_json)
 
-    # Return the structured output as a list (not a JSON string)
+    # Return the structured output as a list
     return structured_output
 
 @app.route('/')
