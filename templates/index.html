@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radiology Report Summarizer</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            max-width: 800px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            font-size: 18px;
+            margin-bottom: 8px;
+            display: block;
+            color: #555;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            min-height: 100px;
+            box-sizing: border-box;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .output-container {
+            margin-top: 20px;
+        }
+
+        .output-container textarea {
+            min-height: 150px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #999;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Radiology Report Summarizer</h1>
+
+        <!-- Add a new field for customizing the OpenAI API prompt -->
+        <form method="POST" action="/process">
+            <label for="custom_prompt">Customize your OpenAI API prompt:</label>
+            <textarea id="custom_prompt" name="custom_prompt">
+Succinctly organize the changes made by the attending to the resident's radiology reports into: 1) missed major findings (life threatening or treatment altering), 2) missed minor findings, and 3) clarified descriptions of findings. Assume the attending's version was correct, and anything not included by the attending but was included by the resident should have been left out by the resident. Keep your answers brief and to the point. The reports are:
+            </textarea>
+
+            <label for="case_text">Paste your radiology reports here:</label>
+            <textarea id="case_text" name="case_text">{{ case_text }}</textarea>
+            <button type="submit">Get Summaries</button>
+        </form>
+
+        <div class="output-container">
+            <h2>Summaries</h2>
+            <textarea readonly>{{ summary }}</textarea>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2024 Radiology Report Summarizer</p>
+        </div>
+    </div>
+
+</body>
+</html>
