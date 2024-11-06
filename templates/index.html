@@ -24,9 +24,11 @@
             max-width: 800px;
             width: 100%;
             box-sizing: border-box;
+            overflow-y: auto;
+            max-height: 90vh;
         }
 
-        h1 {
+        h1, h2 {
             text-align: center;
             color: #333;
         }
@@ -69,10 +71,28 @@
             margin-top: 20px;
         }
 
-        .output-container textarea {
-            min-height: 150px;
-            background-color: #f9f9f9;
+        .case-container {
             border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .case-header {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .score {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        ul {
+            margin: 0;
+            padding-left: 20px;
         }
 
         .footer {
@@ -109,7 +129,6 @@ Respond in this JSON format, with no other additional text or pleasantries:
   "clarifications": [<clarifications>],
   "score": <score>
 }
-            
             </textarea>
 
             <label for="case_text">Paste your radiology reports here:</label>
@@ -119,7 +138,51 @@ Respond in this JSON format, with no other additional text or pleasantries:
 
         <div class="output-container">
             <h2>Summaries</h2>
-            <pre id="jsonOutput">{{ summary | tojson(indent=4) }}</pre>
+
+            {% if summary %}
+                {% for case in summary %}
+                    <div class="case-container">
+                        <div class="case-header">Case {{ case.case_number }}</div>
+
+                        <p><span class="score">Score:</span> {{ case.score }}</p>
+
+                        {% if case.major_findings %}
+                            <p><strong>Major Findings:</strong></p>
+                            <ul>
+                                {% for finding in case.major_findings %}
+                                    <li>{{ finding }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p><em>No major findings.</em></p>
+                        {% endif %}
+
+                        {% if case.minor_findings %}
+                            <p><strong>Minor Findings:</strong></p>
+                            <ul>
+                                {% for finding in case.minor_findings %}
+                                    <li>{{ finding }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p><em>No minor findings.</em></p>
+                        {% endif %}
+
+                        {% if case.clarifications %}
+                            <p><strong>Clarifications:</strong></p>
+                            <ul>
+                                {% for clarification in case.clarifications %}
+                                    <li>{{ clarification }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p><em>No clarifications.</em></p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No cases available.</p>
+            {% endif %}
         </div>
 
         <div class="footer">
