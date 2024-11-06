@@ -92,14 +92,16 @@
         <form method="POST" action="/process">
             <label for="custom_prompt">Customize your OpenAI API prompt:</label>
             <textarea id="custom_prompt" name="custom_prompt">
-Please output the response as structured JSON, with the following keys:
+Succinctly organize the changes made by the attending to the resident's radiology reports into: 1) missed major findings (life threatening or treatment altering), 2) missed minor findings, and 3) clarified descriptions of findings. Assume the attending's version was correct, and anything not included by the attending but was included by the resident should have been left out by the resident. Keep your answers brief and to the point. The reports are:
+
+Please output your response as structured JSON, with the following keys:
 - "case_number": The case number sent in the request.
 - "major_findings": A list of any major findings missed by the resident (life-threatening or treatment-altering).
 - "minor_findings": A list of minor findings missed by the resident.
 - "clarifications": A list of any clarifications the attending made to improve understanding.
 - "score": The calculated score, where each major finding is worth 3 points and each minor finding is worth 1 point.
 
-Respond in this JSON format:
+Respond in this JSON format, with no other additional text or pleasantries:
 {
   "case_number": <case_number>,
   "major_findings": [<major_findings>],
@@ -107,6 +109,7 @@ Respond in this JSON format:
   "clarifications": [<clarifications>],
   "score": <score>
 }
+            
             </textarea>
 
             <label for="case_text">Paste your radiology reports here:</label>
