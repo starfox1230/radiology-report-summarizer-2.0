@@ -1,1 +1,3 @@
-gunicorn.conf.py
+Flask
+openai
+gunicorn
