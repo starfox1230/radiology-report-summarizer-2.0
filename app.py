@@ -56,7 +56,8 @@ def process_cases(bulk_text, custom_prompt):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', case_text="", summary="")
+
 
 @app.route('/process', methods=['POST'])
 def process():
