@@ -21,12 +21,23 @@ def get_summary(case_text, custom_prompt, case_number):
             max_tokens=2000,
             temperature=0.5
         )
+
+        # Capture and check the API response
+        json_output = response.choices[0].message.content.strip()
         
-        # Parse the structured JSON returned by the API
-        structured_json = response.choices[0].message.content.strip()
-        return structured_json  # JSON response from the API
+        # Verify if the response is valid JSON
+        try:
+            parsed_json = json.loads(json_output)
+            return parsed_json
+        except json.JSONDecodeError:
+            # Log an error if JSON decoding fails
+            print(f"Failed to decode JSON for case {case_number}: {json_output}")
+            return {"error": f"Invalid JSON response from API for case {case_number}"}
+    
     except Exception as e:
-        return f"Error processing case: {str(e)}"
+        # Log other exceptions and return an error message
+        print(f"Error processing case {case_number}: {str(e)}")
+        return {"error": f"Error processing case {case_number}: {str(e)}"}
 
 # Function to process multiple cases and structure the output as JSON with scores
 def process_cases(bulk_text, custom_prompt):
@@ -40,24 +51,24 @@ def process_cases(bulk_text, custom_prompt):
             resident_report = case.split("Resident Report:")[1].strip()
             case_text = f"Resident Report: {resident_report}\nAttending Report: {attending_report}"
             
-            # Get structured JSON summary for the case
-            json_output = get_summary(case_text, custom_prompt, case_number=index)
-            parsed_json = json.loads(json_output)  # Parse JSON response from the API
+            # Get structured JSON summary for each case
+            parsed_json = get_summary(case_text, custom_prompt, case_number=index)
             
-            # Calculate score based on major and minor findings
-            score = len(parsed_json['major_findings']) * 3 + len(parsed_json['minor_findings']) * 1
-            parsed_json['score'] = score  # Append score to the JSON
+            # Check if there's an error in the parsed JSON
+            if "error" in parsed_json:
+                structured_output.append({"case_number": index, "error": parsed_json["error"]})
+            else:
+                # Calculate the score if there is no error
+                score = len(parsed_json.get('major_findings', [])) * 3 + len(parsed_json.get('minor_findings', [])) * 1
+                parsed_json['score'] = score  # Append score to the JSON
+                structured_output.append(parsed_json)
 
-            # Append the case JSON to the structured output list
-            structured_output.append(parsed_json)
-
-    # Return final structured JSON output
+    # Return final JSON structure
     return json.dumps(structured_output, indent=4)
 
 @app.route('/')
 def index():
     return render_template('index.html', case_text="", summary="")
-
 
 @app.route('/process', methods=['POST'])
 def process():
