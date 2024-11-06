@@ -63,12 +63,12 @@ def process_cases(bulk_text, custom_prompt):
                 parsed_json['score'] = score  # Append score to the JSON
                 structured_output.append(parsed_json)
 
-    # Return final JSON structure
-    return json.dumps(structured_output, indent=4)
+    # Return the structured output as a list (not a JSON string)
+    return structured_output
 
 @app.route('/')
 def index():
-    return render_template('index.html', case_text="", summary="")
+    return render_template('index.html', case_text="", summary=[])
 
 @app.route('/process', methods=['POST'])
 def process():
